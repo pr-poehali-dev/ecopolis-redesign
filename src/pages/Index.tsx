@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const NAV_ITEMS = [
@@ -146,6 +147,7 @@ const scrollTo = (id: string) => {
 };
 
 export default function Index() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catalogFilter, setCatalogFilter] = useState("Все");
@@ -205,7 +207,7 @@ export default function Index() {
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.id}
-                onClick={() => handleNav(item.id)}
+                onClick={() => item.id === "catalog" ? navigate("/catalog") : handleNav(item.id)}
                 className={`nav-link text-sm font-ibm font-medium tracking-wide pb-0.5 transition-colors ${
                   activeSection === item.id ? "text-navy active" : "text-steel hover:text-navy"
                 }`}
@@ -285,7 +287,7 @@ export default function Index() {
             </p>
             <div className="flex flex-wrap gap-4 animate-fade-in-up delay-300">
               <button
-                onClick={() => handleNav("catalog")}
+                onClick={() => navigate("/catalog")}
                 className="bg-orange text-white font-oswald font-medium text-sm tracking-[0.15em] px-8 py-4 hover:bg-orange/90 transition-colors flex items-center gap-2"
               >
                 <Icon name="LayoutGrid" size={16} />
