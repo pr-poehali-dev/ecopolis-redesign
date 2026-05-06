@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Icon from "@/components/ui/icon";
-import { CATEGORIES, PRODUCTS, getProductsByCategory } from "@/data/catalog";
+import { CATEGORIES } from "@/data/catalog";
+import { useEditor } from "@/context/EditorContext";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -23,9 +24,10 @@ export default function Catalog() {
   const activeCatId = searchParams.get("cat") ?? "";
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "price_asc" | "price_desc">("default");
+  const { getAllProducts, getProductsByCategory, isEditMode } = useEditor();
 
   const displayProducts = useMemo(() => {
-    let list = activeCatId ? getProductsByCategory(activeCatId) : PRODUCTS;
+    let list = activeCatId ? getProductsByCategory(activeCatId) : getAllProducts();
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((p) => p.name.toLowerCase().includes(q) || p.article.toLowerCase().includes(q));
@@ -33,12 +35,12 @@ export default function Catalog() {
     if (sortBy === "price_asc") list = [...list].sort((a, b) => a.price - b.price);
     if (sortBy === "price_desc") list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [activeCatId, search, sortBy]);
+  }, [activeCatId, search, sortBy, getAllProducts, getProductsByCategory]);
 
   const activeCat = CATEGORIES.find((c) => c.id === activeCatId);
 
   return (
-    <div className="min-h-screen bg-background font-ibm flex flex-col">
+    <div className={`min-h-screen bg-background font-ibm flex flex-col ${isEditMode ? "pb-16" : ""}`}>
       <SiteHeader />
 
       {/* Breadcrumb */}
@@ -73,7 +75,7 @@ export default function Catalog() {
                     }`}
                   >
                     <span>Все категории</span>
-                    <span className="text-xs bg-muted px-1.5 py-0.5">{PRODUCTS.length}</span>
+                    <span className="text-xs bg-muted px-1.5 py-0.5">{getAllProducts().length}</span>
                   </button>
                 </li>
                 {CATEGORIES.map((cat) => (

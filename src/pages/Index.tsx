@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import { useEditor } from "@/context/EditorContext";
+import EditableText from "@/components/editor/EditableText";
 
 const NAV_ITEMS = [
   { id: "home", label: "Главная" },
@@ -148,6 +150,8 @@ const scrollTo = (id: string) => {
 
 export default function Index() {
   const navigate = useNavigate();
+  const { state, updateSettings, isEditMode } = useEditor();
+  const s = state.siteSettings;
   const [activeSection, setActiveSection] = useState("home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catalogFilter, setCatalogFilter] = useState("Все");
@@ -162,28 +166,28 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background font-ibm">
+    <div className={`min-h-screen bg-background font-ibm ${isEditMode ? "pb-16" : ""}`}>
       {/* TOP BAR */}
       <div className="bg-navy text-white text-sm py-2 hidden md:block">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex gap-6 text-white/70">
             <span className="flex items-center gap-1.5">
               <Icon name="MapPin" size={13} />
-              г. Екатеринбург, ул. Промышленная, 42
+              {s.address}
             </span>
             <span className="flex items-center gap-1.5">
               <Icon name="Clock" size={13} />
-              Пн–Пт: 8:00–18:00
+              {s.workHours}
             </span>
           </div>
           <div className="flex gap-6 text-white/70">
-            <a href="tel:+73432001234" className="flex items-center gap-1.5 hover:text-white transition-colors">
+            <a href={`tel:${s.phone}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
               <Icon name="Phone" size={13} />
-              +7 (343) 200-12-34
+              {s.phone}
             </a>
-            <a href="mailto:info@promtech.ru" className="flex items-center gap-1.5 hover:text-white transition-colors">
+            <a href={`mailto:${s.email}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
               <Icon name="Mail" size={13} />
-              info@promtech.ru
+              {s.email}
             </a>
           </div>
         </div>
@@ -275,16 +279,32 @@ export default function Index() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-6 animate-fade-in-up">
               <div className="h-px w-12 bg-orange" />
-              <span className="text-orange font-ibm text-sm font-medium tracking-[0.2em] uppercase">Промышленное оборудование</span>
+              <EditableText
+                value={s.heroTagline}
+                onSave={(v) => updateSettings({ heroTagline: v })}
+                className="text-orange font-ibm text-sm font-medium tracking-[0.2em] uppercase"
+              />
             </div>
             <h1 className="font-oswald text-5xl md:text-7xl font-bold text-white leading-[1.05] tracking-wide mb-6 animate-fade-in-up delay-100">
-              НАДЁЖНОСТЬ<br />
-              <span className="text-orange">ПРОВЕРЕНА</span><br />
-              ПРОИЗВОДСТВОМ
+              {isEditMode ? (
+                <textarea
+                  value={s.heroTitle}
+                  onChange={(e) => updateSettings({ heroTitle: e.target.value })}
+                  rows={3}
+                  className="w-full bg-transparent border-2 border-orange/60 text-white font-oswald text-4xl font-bold resize-none focus:outline-none p-2"
+                />
+              ) : (
+                s.heroTitle.split("\n").map((line, i) => (
+                  <span key={i}>{i === 1 ? <span className="text-orange">{line}</span> : line}{i < 2 && <br />}</span>
+                ))
+              )}
             </h1>
-            <p className="text-white/75 font-ibm text-lg leading-relaxed mb-10 max-w-xl animate-fade-in-up delay-200">
-              Производство и поставка трубопроводной арматуры, насосного и теплообменного оборудования. Полная техническая документация. Работаем с 2003 года.
-            </p>
+            <EditableText
+              value={s.heroSubtitle}
+              onSave={(v) => updateSettings({ heroSubtitle: v })}
+              multiline
+              className="text-white/75 font-ibm text-lg leading-relaxed mb-10 max-w-xl animate-fade-in-up delay-200 block"
+            />
             <div className="flex flex-wrap gap-4 animate-fade-in-up delay-300">
               <button
                 onClick={() => navigate("/catalog")}
@@ -329,12 +349,18 @@ export default function Index() {
               <h2 className="font-oswald text-4xl md:text-5xl font-semibold text-navy mb-6 tracking-wide">
                 О КОМПАНИИ
               </h2>
-              <p className="text-steel font-ibm leading-relaxed mb-5">
-                ООО «ПромТех» — российский производитель промышленного оборудования с полным циклом производства. Основана в 2003 году, штаб-квартира в Екатеринбурге.
-              </p>
-              <p className="text-steel font-ibm leading-relaxed mb-8">
-                Выпускаем трубопроводную арматуру, насосное и теплообменное оборудование для нефтегазовой, металлургической, химической и энергетической промышленности. Производственная мощность — свыше 50 000 единиц продукции в год.
-              </p>
+              <EditableText
+                value={s.aboutText1}
+                onSave={(v) => updateSettings({ aboutText1: v })}
+                multiline
+                className="text-steel font-ibm leading-relaxed mb-5 block"
+              />
+              <EditableText
+                value={s.aboutText2}
+                onSave={(v) => updateSettings({ aboutText2: v })}
+                multiline
+                className="text-steel font-ibm leading-relaxed mb-8 block"
+              />
               <div className="grid grid-cols-2 gap-4 mb-8">
                 {[
                   { icon: "Factory", text: "Собственное производство 12 000 м²" },
@@ -616,10 +642,10 @@ export default function Index() {
 
               <div className="space-y-5 mb-10">
                 {[
-                  { icon: "MapPin", label: "Адрес", val: "620010, г. Екатеринбург, ул. Промышленная, д. 42, стр. 1" },
-                  { icon: "Phone", label: "Телефон", val: "+7 (343) 200-12-34" },
-                  { icon: "Mail", label: "E-mail", val: "info@promtech.ru" },
-                  { icon: "Clock", label: "Режим работы", val: "Пн–Пт: 8:00–18:00 (МСК+2)" },
+                  { icon: "MapPin", label: "Адрес", val: s.address, key: "address" as const },
+                  { icon: "Phone", label: "Телефон", val: s.phone, key: "phone" as const },
+                  { icon: "Mail", label: "E-mail", val: s.email, key: "email" as const },
+                  { icon: "Clock", label: "Режим работы", val: s.workHours, key: "workHours" as const },
                 ].map((c) => (
                   <div key={c.label} className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-navy flex items-center justify-center flex-shrink-0">
@@ -627,7 +653,11 @@ export default function Index() {
                     </div>
                     <div>
                       <div className="font-ibm text-xs text-muted-foreground uppercase tracking-wider mb-0.5">{c.label}</div>
-                      <div className="font-ibm font-medium text-navy">{c.val}</div>
+                      <EditableText
+                        value={c.val}
+                        onSave={(v) => updateSettings({ [c.key]: v })}
+                        className="font-ibm font-medium text-navy block"
+                      />
                     </div>
                   </div>
                 ))}
